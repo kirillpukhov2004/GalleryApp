@@ -19,6 +19,7 @@ final class GalleryViewController: UIViewController {
     private let statusView = StatusView(frame: .zero)
     private let initialSpinner = UIActivityIndicatorView(style: .large)
     private let footerSpinner = UIActivityIndicatorView(style: .medium)
+    private let footerErrorButton = UIButton(type: .system)
     private var photosByID: [Photo.ID: Photo] = [:]
     private var renderedFavouriteIDs: Set<String> = []
     private var hasAppliedSnapshot = false
@@ -101,6 +102,17 @@ final class GalleryViewController: UIViewController {
         footerSpinner.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(footerSpinner)
 
+        footerErrorButton.setTitle("Couldn't load more. Tap to retry.", for: .normal)
+        footerErrorButton.titleLabel?.font = .preferredFont(forTextStyle: .footnote)
+        footerErrorButton.isHidden = true
+        footerErrorButton.addTarget(
+            self,
+            action: #selector(handleFooterRetry),
+            for: .touchUpInside
+        )
+        footerErrorButton.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(footerErrorButton)
+
         NSLayoutConstraint.activate([
             statusView.topAnchor.constraint(equalTo: view.topAnchor),
             statusView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -114,6 +126,12 @@ final class GalleryViewController: UIViewController {
             footerSpinner.bottomAnchor.constraint(
                 equalTo: view.safeAreaLayoutGuide.bottomAnchor,
                 constant: -8
+            ),
+
+            footerErrorButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            footerErrorButton.bottomAnchor.constraint(
+                equalTo: footerSpinner.topAnchor,
+                constant: -4
             )
         ])
     }
@@ -159,6 +177,9 @@ final class GalleryViewController: UIViewController {
         } else {
             footerSpinner.stopAnimating()
         }
+
+        let showsFooterError = state.errorMessage != nil && !state.photos.isEmpty
+        footerErrorButton.isHidden = !showsFooterError
     }
 
     private func updateStatus(_ state: GalleryViewModel.State) {
@@ -194,6 +215,10 @@ final class GalleryViewController: UIViewController {
             await self?.viewModel.refresh()
             self?.collectionView.refreshControl?.endRefreshing()
         }
+    }
+
+    @objc private func handleFooterRetry() {
+        Task { await viewModel.retry() }
     }
 }
 
