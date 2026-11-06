@@ -5,6 +5,7 @@ final class AppCoordinator {
     private let dependencies: AppDependencies
     private let tabBarController = UITabBarController()
     private var galleryCoordinator: GalleryCoordinator?
+    private var favouritesCoordinator: FavouritesCoordinator?
 
     init(dependencies: AppDependencies) {
         self.dependencies = dependencies
@@ -24,11 +25,14 @@ final class AppCoordinator {
             selectedImage: nil
         )
 
-        let favouritesViewController = PlaceholderViewController(
-            title: "Favourites",
-            systemImage: "heart"
+        let favouritesNavigationController = UINavigationController()
+        let favouritesCoordinator = FavouritesCoordinator(
+            navigationController: favouritesNavigationController,
+            dependencies: dependencies
         )
-        favouritesViewController.tabBarItem = UITabBarItem(
+        favouritesCoordinator.start()
+        self.favouritesCoordinator = favouritesCoordinator
+        favouritesNavigationController.tabBarItem = UITabBarItem(
             title: "Favourites",
             image: UIImage(systemName: "heart"),
             selectedImage: UIImage(systemName: "heart.fill")
@@ -36,7 +40,7 @@ final class AppCoordinator {
 
         tabBarController.viewControllers = [
             galleryNavigationController,
-            UINavigationController(rootViewController: favouritesViewController)
+            favouritesNavigationController
         ]
 
         return tabBarController
