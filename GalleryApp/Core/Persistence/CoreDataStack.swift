@@ -11,12 +11,20 @@ enum CoreDataStackError: Error, Equatable {
 final class CoreDataStack {
     static let modelName = "GalleryApp"
 
+    /// Loaded once so every stack shares a single model description. Loading it per stack
+    /// makes Core Data warn that several models claim the same `NSManagedObject` subclass.
+    nonisolated(unsafe) private static let sharedModel: NSManagedObjectModel? = {
+        let bundle = Bundle(for: CoreDataStack.self)
+        guard let modelURL = bundle.url(forResource: modelName, withExtension: "momd") else {
+            return nil
+        }
+        return NSManagedObjectModel(contentsOf: modelURL)
+    }()
+
     let container: NSPersistentContainer
 
     init(inMemory: Bool = false) throws {
-        let bundle = Bundle(for: CoreDataStack.self)
-        guard let modelURL = bundle.url(forResource: Self.modelName, withExtension: "momd"),
-              let model = NSManagedObjectModel(contentsOf: modelURL) else {
+        guard let model = Self.sharedModel else {
             throw CoreDataStackError.missingModel
         }
 
