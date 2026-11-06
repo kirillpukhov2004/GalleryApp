@@ -3,12 +3,10 @@
 An iOS photo gallery built on the Unsplash API: browse a paginated grid, open a photo to
 read its details and swipe through the set, and keep a locally persisted list of favourites.
 
-> **Status:** all three screens are implemented. Final polish and documentation follow.
-
 ## Contact
 
-- **Author:** _add your name_
-- **GitHub:** _add your profile link_
+- **Author:** Kirill Pukhov
+- **GitHub:** [kirillpukhov2004](https://github.com/kirillpukhov2004)
 
 ## Overview
 
@@ -20,35 +18,46 @@ is handled by coordinators so view controllers stay free of routing logic.
 ## Key functionality
 
 - **Gallery** — adaptive grid of thumbnails with pagination triggered near the bottom,
-  pull to refresh, loading/empty/error states, and a favourite badge on each thumbnail.
+  pull to refresh, loading/empty/error states with retry, and a favourite badge on each
+  thumbnail.
 - **Detail** — full-width image, title and description, heart toggle, horizontal swipe
   through the images already loaded by the gallery, and photographer attribution linking to
   their Unsplash profile.
-- **Favourites** — the favourited photos in a grid, with removal, persisted across launches.
+- **Favourites** — the favourited photos in a grid, with removal through a context menu or a
+  VoiceOver action, persisted across launches.
 
 ## Assumptions and extra features
 
 - The app uses Unsplash's **public authentication** (`Authorization: Client-ID <access key>`).
   No user login or OAuth flow is implemented because the assignment only needs read access.
-- The publicly documented demo rate limit is 50 requests per hour. Pages are fetched once
-  and images are cached, so normal browsing stays well inside that budget.
-- _Additional features beyond the brief will be listed here as they are added._
+- The demo rate limit is 50 requests per hour. Each page is fetched once, images are cached,
+  and no retry loop hammers the API, so normal browsing stays inside that budget.
+- Favourites store **metadata only** (id, title, description, URLs, photographer, size);
+  image files are never written to Core Data.
+- Beyond the brief: adaptive grid for iPhone and iPad widths, dark mode, Dynamic Type,
+  VoiceOver labels and custom actions, non-blocking retry for failed pagination, and
+  photographer links.
+- **No third-party packages or dependencies.** XcodeGen and SwiftLint are development tools
+  only.
 
 ## Architecture
 
 ```
 Presentation   ViewController + ViewModel per screen, coordinators for navigation
-Domain         Photo model, protocols, use cases
-Data           Unsplash client, Core Data stack and favourites repository
-Core           Networking, image loading and caching, configuration, design system
+Domain         Photo model, PhotoFetching, FavouritesRepositoryProtocol
+Data           UnsplashClient and DTOs, Core Data stack and repository
+Core           HTTPClient, APIError, image loader, configuration, design system
 ```
 
 - **MVVM** with `@Published` state and `AnyPublisher` outputs; controllers subscribe with
   `sink` and store cancellables.
 - **Coordinator** pattern for navigation; view controllers never push or present.
-- **Dependency injection** through initialisers, assembled once in `SceneDelegate`.
+- **Dependency injection** through initialisers, assembled once in `SceneDelegate` by
+  `AppDependencies`.
 - **Programme to protocols** (`PhotoFetching`, `FavouritesRepositoryProtocol`, `ImageLoading`,
   `HTTPClient`) so every layer is replaceable and testable.
+- A single `FavouritesRepository` publishes favourite IDs to every screen, which is what keeps
+  the gallery badge, the detail heart and the favourites grid in sync.
 
 Design patterns in use: Observer (Combine), Delegate (collection view and image loading),
 Factory (coordinators and dependency container), Dependency Inversion (protocol boundaries).
@@ -64,18 +73,35 @@ Factory (coordinators and dependency container), Dependency Inversion (protocol 
 - **Dependency inversion** — high-level view models depend on abstractions, never concrete
   clients or Core Data types.
 
+### Why these choices
+
+- **MVVM + coordinators** keeps UIKit lifecycle code thin and makes navigation testable and
+  centralised.
+- **Protocol boundaries** let the whole app run in tests with stubs and an in-memory store,
+  with no network and no simulator state leaking between tests.
+- **Core Data with a unique `photoID`** keeps favourites consistent, survives relaunches and
+  scales beyond a plist or `UserDefaults` list.
+- **Downsampled image cache** avoids decoding full-size images for thumbnails, which is the
+  main cause of janky grids.
+
 ### Frameworks
 
 UIKit, Combine, Core Data, URLSession, XCTest, XcodeGen and SwiftLint.
-**No third-party packages or dependencies.**
 
 ## Screenshots
 
-Screenshots are added in the documentation milestone:
+Screenshots are captured on the iPhone 17 simulator and stored in `docs/screenshots/`:
+
+```bash
+xcrun simctl io booted screenshot docs/screenshots/gallery.png
+```
 
 | Gallery | Detail | Favourites |
 | --- | --- | --- |
-| _pending_ | _pending_ | _pending_ |
+| `docs/screenshots/gallery.png` | `docs/screenshots/detail.png` | `docs/screenshots/favourites.png` |
+
+The development environment used for this build could not render the simulator surface, so
+the three images are captured on a workstation with a running Simulator before submission.
 
 ## Configuration
 
@@ -92,7 +118,8 @@ UNSPLASH_ACCESS_KEY = your-public-access-key
 ```
 
 Use the key Unsplash shows for public authentication (`Authorization: Client-ID <key>`).
-Never put the secret key in this file, in the app, or in a commit.
+Never put the secret key in this file, in the app, or in a commit. If the key is missing the
+app shows a configuration screen instead of crashing.
 
 ## Build, test and lint
 
@@ -124,6 +151,8 @@ swiftlint --strict
 
 ## Tests
 
+57 unit tests run without touching the network or the live API.
+
 | Suite | Covers |
 | --- | --- |
 | `AppConfigurationTests` | access key presence, blank and unresolved values, trimming |
@@ -135,8 +164,8 @@ swiftlint --strict
 | `DetailViewModelTests` | index clamping, swipe updates, favourite state, toggle errors |
 | `FavouritesViewModelTests` | publisher updates, removal, out-of-range guard, error handling |
 
-Later milestones add one suite per view model plus a full suite for the persistence layer.
-Tests use `URLProtocol` stubs and JSON fixtures and never call the live API.
+Networking tests use `URLProtocol` stubs and JSON fixtures; persistence tests use an
+in-memory Core Data store.
 
 ## Commit convention
 
