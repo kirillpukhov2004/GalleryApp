@@ -3,8 +3,9 @@
 An iOS photo gallery built on the Unsplash API: browse a paginated grid, open a photo to
 read its details and swipe through the set, and keep a locally persisted list of favourites.
 
-> **Status:** scaffold, networking and persistence are in place. The three screens are
-> implemented in the following milestones; the sections below describe the finished app.
+> **Status:** scaffold, networking, persistence and image loading are in place. The three
+> screens are implemented in the following milestones; the sections below describe the
+> finished app.
 
 ## Contact
 
@@ -131,6 +132,7 @@ swiftlint --strict
 | `HTTPClientTests` | 2xx passthrough, 401/429/5xx mapping, transport and cancellation errors |
 | `UnsplashClientTests` | auth headers, pagination query, decoding, short pages, malformed payloads |
 | `FavouritesRepositoryTests` | toggle/remove, duplicates, persistence across instances, publishers |
+| `ImageLoaderTests` | downsampling, memory cache, in-flight de-duplication, cancellation |
 
 Later milestones add one suite per view model plus a full suite for the persistence layer.
 Tests use `URLProtocol` stubs and JSON fixtures and never call the live API.
