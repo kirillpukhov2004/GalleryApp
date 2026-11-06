@@ -14,6 +14,21 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         let window = UIWindow(windowScene: windowScene)
 
+        if Self.isRunningTests {
+            // The unit test host launches the app, but tests never exercise the live UI.
+            // Skipping the composition root keeps tests off the network and out of the store.
+            let placeholder = UIViewController()
+            placeholder.view.backgroundColor = .systemBackground
+            window.rootViewController = placeholder
+        } else {
+            configureRootViewController(in: window)
+        }
+
+        window.makeKeyAndVisible()
+        self.window = window
+    }
+
+    private func configureRootViewController(in window: UIWindow) {
         do {
             let dependencies = try AppDependencies.live()
             let coordinator = AppCoordinator(dependencies: dependencies)
@@ -24,9 +39,10 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                 message: Self.message(for: error)
             )
         }
+    }
 
-        window.makeKeyAndVisible()
-        self.window = window
+    private static var isRunningTests: Bool {
+        ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
     }
 
     private static func message(for error: Error) -> String {
