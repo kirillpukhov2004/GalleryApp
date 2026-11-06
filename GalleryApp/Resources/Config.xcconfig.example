@@ -1,0 +1,6 @@
+// Copy this file to Config.xcconfig and fill in the public Unsplash access key.
+// Config.xcconfig is gitignored and must never be committed.
+//
+// Use the *public* access key (the one used as `Authorization: Client-ID <key>`).
+// Never put the secret key in the app: it is only used server-side for OAuth.
+UNSPLASH_ACCESS_KEY =

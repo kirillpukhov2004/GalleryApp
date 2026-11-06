@@ -1,0 +1,20 @@
+# macOS
+.DS_Store
+
+# Xcode
+DerivedData/
+.build/
+*.xcuserstate
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+
+# Local configuration (contains the Unsplash access key)
+GalleryApp/Resources/Config.xcconfig
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# Screenshot scratch files
+docs/screenshots/*.tmp.png
