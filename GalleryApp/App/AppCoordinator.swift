@@ -2,14 +2,23 @@ import UIKit
 
 @MainActor
 final class AppCoordinator {
+    private let dependencies: AppDependencies
     private let tabBarController = UITabBarController()
+    private var galleryCoordinator: GalleryCoordinator?
+
+    init(dependencies: AppDependencies) {
+        self.dependencies = dependencies
+    }
 
     func start() -> UIViewController {
-        let galleryViewController = PlaceholderViewController(
-            title: "Gallery",
-            systemImage: "photo.on.rectangle.angled"
+        let galleryNavigationController = UINavigationController()
+        let galleryCoordinator = GalleryCoordinator(
+            navigationController: galleryNavigationController,
+            dependencies: dependencies
         )
-        galleryViewController.tabBarItem = UITabBarItem(
+        galleryCoordinator.start()
+        self.galleryCoordinator = galleryCoordinator
+        galleryNavigationController.tabBarItem = UITabBarItem(
             title: "Gallery",
             image: UIImage(systemName: "photo.on.rectangle.angled"),
             selectedImage: nil
@@ -26,7 +35,7 @@ final class AppCoordinator {
         )
 
         tabBarController.viewControllers = [
-            UINavigationController(rootViewController: galleryViewController),
+            galleryNavigationController,
             UINavigationController(rootViewController: favouritesViewController)
         ]
 

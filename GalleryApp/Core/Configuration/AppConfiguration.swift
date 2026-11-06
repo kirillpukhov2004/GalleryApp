@@ -31,3 +31,13 @@ struct AppConfiguration: Sendable {
 
     private static let accessKeyKey = "UNSPLASH_ACCESS_KEY"
 }
+
+extension AppConfiguration.ConfigurationError: LocalizedError {
+    var errorDescription: String? {
+        switch self {
+        case .missingAccessKey:
+            "Add your public Unsplash access key to GalleryApp/Resources/Config.xcconfig, "
+                + "then rebuild the app."
+        }
+    }
+}
