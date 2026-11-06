@@ -78,10 +78,15 @@ GalleryApp/
   App/                  AppDelegate, SceneDelegate, AppCoordinator, Info.plist
   Core/
     Configuration/      AppConfiguration
-    Networking/         HTTPClient, APIError, endpoints
+    Networking/         HTTPClient, APIError
     ImageLoading/       ImageLoader, ImageLoading protocol
     Persistence/        CoreDataStack, FavouriteEntity, FavouritesRepository
     DesignSystem/       colours, spacing, reusable views
+  Data/
+    Unsplash/           UnsplashClient, response DTOs
+  Domain/
+    Models/             Photo, PhotoPage
+    Photos/             PhotoFetching, use cases
   Features/
     Gallery/            GalleryViewController, GalleryViewModel, PhotoCell
     Detail/             DetailViewController, DetailViewModel
