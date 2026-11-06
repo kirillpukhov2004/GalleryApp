@@ -47,6 +47,8 @@ final class DetailImageCell: UICollectionViewCell {
         imageView.contentMode = .scaleAspectFit
         imageView.clipsToBounds = true
         imageView.tintColor = .tertiaryLabel
+        imageView.isAccessibilityElement = true
+        imageView.accessibilityTraits = .image
         imageView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(imageView)
 
