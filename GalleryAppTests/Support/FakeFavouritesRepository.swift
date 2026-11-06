@@ -9,6 +9,7 @@ final class FakeFavouritesRepository: FavouritesRepositoryProtocol {
     private(set) var toggledPhotos: [Photo] = []
     private(set) var removedPhotoIDs: [String] = []
     var toggleError: Error?
+    var removeError: Error?
 
     init(favourites: [Photo] = []) {
         favouritesSubject = CurrentValueSubject(favourites)
@@ -31,10 +32,18 @@ final class FakeFavouritesRepository: FavouritesRepositoryProtocol {
     }
 
     func remove(photoID: String) async throws {
+        if let removeError {
+            throw removeError
+        }
         removedPhotoIDs.append(photoID)
     }
 
     func sendFavouriteIDs(_ ids: Set<String>) {
         favouriteIDsSubject.send(ids)
+    }
+
+    func sendFavourites(_ photos: [Photo]) {
+        favouritesSubject.send(photos)
+        favouriteIDsSubject.send(Set(photos.map(\.id)))
     }
 }
