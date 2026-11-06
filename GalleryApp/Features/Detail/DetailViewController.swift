@@ -170,6 +170,9 @@ final class DetailViewController: UIViewController {
         )
         attributionButton.isHidden = photo?.photographerProfileURL == nil
 
+        if state.errorMessage == nil {
+            lastShownError = nil
+        }
         presentErrorIfNeeded(state.errorMessage)
     }
 

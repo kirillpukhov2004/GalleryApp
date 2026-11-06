@@ -62,9 +62,16 @@ final class FavouritesViewController: UIViewController {
     }
 
     private func configureDataSource() {
-        let registration = UICollectionView.CellRegistration<PhotoCell, Photo.ID> { [weak self] cell, _, photoID in
+        typealias CellRegistration = UICollectionView.CellRegistration<PhotoCell, Photo.ID>
+        let registration = CellRegistration { [weak self] cell, indexPath, photoID in
             guard let self, let photo = self.photosByID[photoID] else { return }
             cell.configure(photo: photo, isFavourite: true, imageLoader: self.imageLoader)
+            cell.accessibilityCustomActions = [
+                UIAccessibilityCustomAction(name: "Remove from Favourites") { [weak self] _ in
+                    Task { await self?.viewModel.remove(at: indexPath.item) }
+                    return true
+                }
+            ]
         }
 
         dataSource = UICollectionViewDiffableDataSource<Section, Photo.ID>(
