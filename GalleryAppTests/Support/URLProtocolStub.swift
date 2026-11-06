@@ -4,7 +4,7 @@ import Foundation
 /// so tests never touch the network.
 final class URLProtocolStub: URLProtocol {
     enum Result: Sendable {
-        case success(statusCode: Int, data: Data)
+        case success(statusCode: Int, data: Data, delay: TimeInterval = 0)
         case failure(URLError)
     }
 
@@ -46,7 +46,11 @@ final class URLProtocolStub: URLProtocol {
         Self.record(request)
 
         switch result {
-        case .success(let statusCode, let data):
+        case .success(let statusCode, let data, let delay):
+            if delay > 0 {
+                Thread.sleep(forTimeInterval: delay)
+            }
+
             guard let url = request.url,
                   let response = HTTPURLResponse(
                     url: url,
