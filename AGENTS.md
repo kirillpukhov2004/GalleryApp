@@ -87,6 +87,7 @@ GalleryApp/
   Domain/
     Models/             Photo, PhotoPage
     Photos/             PhotoFetching, use cases
+    Favourites/         FavouritesRepositoryProtocol
   Features/
     Gallery/            GalleryViewController, GalleryViewModel, PhotoCell
     Detail/             DetailViewController, DetailViewModel
