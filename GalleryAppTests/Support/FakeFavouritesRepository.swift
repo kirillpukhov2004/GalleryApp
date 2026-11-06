@@ -8,6 +8,7 @@ final class FakeFavouritesRepository: FavouritesRepositoryProtocol {
 
     private(set) var toggledPhotos: [Photo] = []
     private(set) var removedPhotoIDs: [String] = []
+    var toggleError: Error?
 
     init(favourites: [Photo] = []) {
         favouritesSubject = CurrentValueSubject(favourites)
@@ -23,6 +24,9 @@ final class FakeFavouritesRepository: FavouritesRepositoryProtocol {
     }
 
     func toggle(_ photo: Photo) async throws {
+        if let toggleError {
+            throw toggleError
+        }
         toggledPhotos.append(photo)
     }
 
