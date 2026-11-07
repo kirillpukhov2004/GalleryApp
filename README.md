@@ -20,9 +20,10 @@ is handled by coordinators so view controllers stay free of routing logic.
 - **Gallery** — adaptive grid of thumbnails with pagination triggered near the bottom,
   pull to refresh, loading/empty/error states with retry, and a favourite badge on each
   thumbnail.
-- **Detail** — full-width image, title and description, heart toggle, horizontal swipe
-  through the images already loaded by the gallery, and photographer attribution linking to
-  their Unsplash profile.
+- **Detail** — full-width image, title and description in a scrollable panel, heart toggle,
+  horizontal swipe through the images already loaded by the gallery, and photographer
+  attribution linking to their Unsplash profile. Landscape switches to a split layout with
+  the image on the left and the metadata column on the right.
 - **Favourites** — the favourited photos in a grid, with removal through a context menu or a
   VoiceOver action, persisted across launches.
 
@@ -151,7 +152,7 @@ swiftlint --strict
 
 ## Tests
 
-57 unit tests run without touching the network or the live API.
+67 unit tests run without touching the network or the live API.
 
 | Suite | Covers |
 | --- | --- |
@@ -162,6 +163,8 @@ swiftlint --strict
 | `ImageLoaderTests` | downsampling, memory cache, in-flight de-duplication, cancellation |
 | `GalleryViewModelTests` | initial load, pagination, de-duplication, refresh, retry, favourite IDs |
 | `DetailViewModelTests` | index clamping, swipe updates, favourite state, toggle errors |
+| `DetailLayoutModeTests` | portrait/landscape selection |
+| `DetailViewControllerLayoutTests` | portrait stack, landscape split, rotation alignment, long text |
 | `FavouritesViewModelTests` | publisher updates, removal, out-of-range guard, error handling |
 
 Networking tests use `URLProtocol` stubs and JSON fixtures; persistence tests use an
