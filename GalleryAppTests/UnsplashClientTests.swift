@@ -37,7 +37,7 @@ final class UnsplashClientTests: XCTestCase {
 
         let first = try XCTUnwrap(page.photos.first)
         XCTAssertEqual(first.id, "LBI7cgq3pbM")
-        XCTAssertEqual(first.title, "A man drinking a coffee.")
+        XCTAssertEqual(first.title, "man in black crew neck t-shirt drinking coffee")
         XCTAssertEqual(first.descriptionText, "A man drinking a coffee.")
         XCTAssertEqual(
             first.thumbnailURL,
@@ -57,6 +57,36 @@ final class UnsplashClientTests: XCTestCase {
         XCTAssertEqual(second.title, "sunset over the sea")
         XCTAssertNil(second.descriptionText)
         XCTAssertEqual(second.photographerName, "Unknown photographer")
+    }
+
+    func testFetchPhotosUsesAltDescriptionAsTitle() async throws {
+        URLProtocolStub.stub(.success(statusCode: 200, data: try fixtureData("photos_page")))
+
+        let page = try await makeSUT().fetchPhotos(page: 1, perPage: 2)
+        let first = try XCTUnwrap(page.photos.first)
+
+        XCTAssertEqual(first.title, "man in black crew neck t-shirt drinking coffee")
+        XCTAssertEqual(first.descriptionText, "A man drinking a coffee.")
+    }
+
+    func testFetchPhotosHidesDescriptionWhenItMatchesTitle() async throws {
+        URLProtocolStub.stub(.success(statusCode: 200, data: try fixtureData("photos_text")))
+
+        let page = try await makeSUT().fetchPhotos(page: 1, perPage: 2)
+        let duplicate = try XCTUnwrap(page.photos.first)
+
+        XCTAssertEqual(duplicate.title, "Same caption")
+        XCTAssertNil(duplicate.descriptionText)
+    }
+
+    func testFetchPhotosFallsBackToDescriptionWhenAltIsMissing() async throws {
+        URLProtocolStub.stub(.success(statusCode: 200, data: try fixtureData("photos_text")))
+
+        let page = try await makeSUT().fetchPhotos(page: 1, perPage: 2)
+        let fallback = try XCTUnwrap(page.photos.last)
+
+        XCTAssertEqual(fallback.title, "Only a long description")
+        XCTAssertNil(fallback.descriptionText)
     }
 
     func testFetchPhotosReportsNoMorePagesWhenResponseIsShort() async throws {
