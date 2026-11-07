@@ -20,14 +20,20 @@ final class DetailViewController: UIViewController {
         action: #selector(handleHeartTap)
     )
     private var dataSource: UICollectionViewDiffableDataSource<Section, Int>?
+
+    private let metadataScrollView = UIScrollView()
+    private let metadataStackView = UIStackView()
     private let pageLabel = UILabel()
     private let titleLabel = UILabel()
     private let descriptionLabel = UILabel()
-    private let attributionButton = UIButton(type: .system)
-    private var cancellables = Set<AnyCancellable>()
+    private let attributionLabel = UILabel()
+
+    private var portraitConstraints: [NSLayoutConstraint] = []
+    private var landscapeConstraints: [NSLayoutConstraint] = []
+    private var layoutMode: DetailLayoutMode?
     private var hasAppliedSnapshot = false
-    private var hasScrolledToInitialIndex = false
     private var lastShownError: String?
+    private var cancellables = Set<AnyCancellable>()
 
     init(viewModel: DetailViewModel, imageLoader: any ImageLoading) {
         self.viewModel = viewModel
@@ -48,80 +54,139 @@ final class DetailViewController: UIViewController {
         configureCollectionView()
         configureMetadata()
         configureDataSource()
+        configureLayoutConstraints()
         bind()
         render(viewModel.state)
     }
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-
-        if let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout,
-           layout.itemSize != collectionView.bounds.size {
-            layout.itemSize = collectionView.bounds.size
-            layout.invalidateLayout()
-        }
-
-        scrollToInitialIndexIfNeeded()
+        updateLayoutModeIfNeeded()
+        syncPagingItemSizeIfNeeded()
     }
 
     private func configureCollectionView() {
         collectionView.delegate = self
         collectionView.isPagingEnabled = true
+        collectionView.contentInsetAdjustmentBehavior = .never
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.backgroundColor = .secondarySystemBackground
+        collectionView.accessibilityIdentifier = "detail.paging"
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(collectionView)
-
-        NSLayoutConstraint.activate([
-            collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            collectionView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.55)
-        ])
     }
 
     private func configureMetadata() {
+        metadataScrollView.alwaysBounceVertical = false
+        metadataScrollView.showsVerticalScrollIndicator = true
+        metadataScrollView.accessibilityIdentifier = "detail.metadata"
+        metadataScrollView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(metadataScrollView)
+
+        configureLabels()
+        configureAttributionLabel()
+        configureMetadataStack()
+    }
+
+    private func configureLabels() {
         pageLabel.font = .preferredFont(forTextStyle: .caption1)
         pageLabel.textColor = .secondaryLabel
         pageLabel.adjustsFontForContentSizeCategory = true
+        pageLabel.accessibilityIdentifier = "detail.page"
 
         titleLabel.font = .preferredFont(forTextStyle: .title2)
         titleLabel.textColor = .label
         titleLabel.numberOfLines = 0
         titleLabel.adjustsFontForContentSizeCategory = true
+        titleLabel.accessibilityIdentifier = "detail.title"
 
         descriptionLabel.font = .preferredFont(forTextStyle: .body)
         descriptionLabel.textColor = .secondaryLabel
         descriptionLabel.numberOfLines = 0
         descriptionLabel.adjustsFontForContentSizeCategory = true
+        descriptionLabel.accessibilityIdentifier = "detail.description"
+    }
 
-        attributionButton.contentHorizontalAlignment = .leading
-        attributionButton.titleLabel?.font = .preferredFont(forTextStyle: .footnote)
-        attributionButton.titleLabel?.adjustsFontForContentSizeCategory = true
-        attributionButton.addTarget(
-            self,
-            action: #selector(handleAttributionTap),
-            for: .touchUpInside
+    private func configureAttributionLabel() {
+        attributionLabel.font = .preferredFont(forTextStyle: .footnote)
+        attributionLabel.textColor = .link
+        attributionLabel.numberOfLines = 0
+        attributionLabel.adjustsFontForContentSizeCategory = true
+        attributionLabel.isUserInteractionEnabled = true
+        attributionLabel.accessibilityTraits = .link
+        attributionLabel.accessibilityIdentifier = "detail.attribution"
+        attributionLabel.addGestureRecognizer(
+            UITapGestureRecognizer(target: self, action: #selector(handleAttributionTap))
         )
+    }
 
-        let stackView = UIStackView(
-            arrangedSubviews: [pageLabel, titleLabel, descriptionLabel, attributionButton]
-        )
-        stackView.axis = .vertical
-        stackView.alignment = .leading
-        stackView.spacing = 8
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(stackView)
+    private func configureMetadataStack() {
+        metadataStackView.axis = .vertical
+        metadataStackView.alignment = .leading
+        metadataStackView.spacing = 8
+        metadataStackView.translatesAutoresizingMaskIntoConstraints = false
+        [pageLabel, titleLabel, descriptionLabel, attributionLabel]
+            .forEach(metadataStackView.addArrangedSubview)
+        metadataScrollView.addSubview(metadataStackView)
 
         NSLayoutConstraint.activate([
-            stackView.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 16),
-            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            stackView.bottomAnchor.constraint(
-                lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor,
-                constant: -16
+            metadataStackView.topAnchor.constraint(
+                equalTo: metadataScrollView.contentLayoutGuide.topAnchor,
+                constant: 16
+            ),
+            metadataStackView.leadingAnchor.constraint(
+                equalTo: metadataScrollView.contentLayoutGuide.leadingAnchor,
+                constant: 20
+            ),
+            metadataStackView.trailingAnchor.constraint(
+                equalTo: metadataScrollView.contentLayoutGuide.trailingAnchor,
+                constant: -20
+            ),
+            metadataStackView.bottomAnchor.constraint(
+                equalTo: metadataScrollView.contentLayoutGuide.bottomAnchor,
+                constant: -24
+            ),
+            metadataStackView.widthAnchor.constraint(
+                equalTo: metadataScrollView.frameLayoutGuide.widthAnchor,
+                constant: -40
             )
         ])
+    }
+
+    private func configureLayoutConstraints() {
+        let safeArea = view.safeAreaLayoutGuide
+
+        let portraitImageHeight = collectionView.heightAnchor.constraint(
+            equalTo: view.heightAnchor,
+            multiplier: 0.5
+        )
+        portraitImageHeight.priority = .defaultHigh
+
+        portraitConstraints = [
+            collectionView.topAnchor.constraint(equalTo: safeArea.topAnchor),
+            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            portraitImageHeight,
+            collectionView.heightAnchor.constraint(greaterThanOrEqualToConstant: 220),
+            collectionView.heightAnchor.constraint(lessThanOrEqualToConstant: 520),
+
+            metadataScrollView.topAnchor.constraint(equalTo: collectionView.bottomAnchor),
+            metadataScrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            metadataScrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            metadataScrollView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor)
+        ]
+
+        landscapeConstraints = [
+            collectionView.topAnchor.constraint(equalTo: safeArea.topAnchor),
+            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor),
+            collectionView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.6),
+
+            metadataScrollView.topAnchor.constraint(equalTo: safeArea.topAnchor),
+            metadataScrollView.leadingAnchor.constraint(equalTo: collectionView.trailingAnchor),
+            metadataScrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            metadataScrollView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor)
+        ]
     }
 
     private func configureDataSource() {
@@ -164,11 +229,8 @@ final class DetailViewController: UIViewController {
             ? "Remove from favourites"
             : "Add to favourites"
 
-        attributionButton.setTitle(
-            photo.map { "Photo by \($0.photographerName) on Unsplash" },
-            for: .normal
-        )
-        attributionButton.isHidden = photo?.photographerProfileURL == nil
+        attributionLabel.text = photo.map { "Photo by \($0.photographerName) on Unsplash" }
+        attributionLabel.isHidden = photo?.photographerProfileURL == nil
 
         if state.errorMessage == nil {
             lastShownError = nil
@@ -186,34 +248,39 @@ final class DetailViewController: UIViewController {
         hasAppliedSnapshot = true
     }
 
-    private func scrollToInitialIndexIfNeeded() {
-        guard !hasScrolledToInitialIndex,
-              collectionView.bounds.width > 0,
-              viewModel.photoCount > 0 else {
+    private func updateLayoutModeIfNeeded() {
+        let mode = DetailLayoutMode.mode(for: view.bounds.size)
+        guard mode != layoutMode else { return }
+        layoutMode = mode
+
+        NSLayoutConstraint.deactivate(portraitConstraints + landscapeConstraints)
+        NSLayoutConstraint.activate(
+            mode == .portrait ? portraitConstraints : landscapeConstraints
+        )
+        titleLabel.font = .preferredFont(forTextStyle: mode == .portrait ? .title2 : .title3)
+
+        view.setNeedsLayout()
+    }
+
+    private func syncPagingItemSizeIfNeeded() {
+        guard let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout else {
             return
         }
 
-        hasScrolledToInitialIndex = true
+        let size = collectionView.bounds.size
+        guard size.width > 0, size.height > 0, layout.itemSize != size else { return }
+
+        layout.itemSize = size
+        layout.invalidateLayout()
         collectionView.layoutIfNeeded()
+        scrollToCurrentIndex()
+    }
+
+    private func scrollToCurrentIndex() {
+        guard viewModel.photoCount > 0 else { return }
+
         let indexPath = IndexPath(item: viewModel.state.currentIndex, section: 0)
         collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: false)
-    }
-
-    private func presentErrorIfNeeded(_ message: String?) {
-        guard let message, message != lastShownError else { return }
-        lastShownError = message
-
-        let alert = UIAlertController(title: "Something went wrong", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
-    }
-
-    private func makeLayout() -> UICollectionViewFlowLayout {
-        let layout = UICollectionViewFlowLayout()
-        layout.scrollDirection = .horizontal
-        layout.minimumLineSpacing = 0
-        layout.minimumInteritemSpacing = 0
-        return layout
     }
 
     @objc private func handleHeartTap() {
@@ -224,6 +291,29 @@ final class DetailViewController: UIViewController {
     @objc private func handleAttributionTap() {
         guard let url = viewModel.currentPhoto?.photographerProfileURL else { return }
         UIApplication.shared.open(url)
+    }
+}
+
+private extension DetailViewController {
+    func makeLayout() -> UICollectionViewFlowLayout {
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .horizontal
+        layout.minimumLineSpacing = 0
+        layout.minimumInteritemSpacing = 0
+        return layout
+    }
+
+    func presentErrorIfNeeded(_ message: String?) {
+        guard let message, message != lastShownError else { return }
+        lastShownError = message
+
+        let alert = UIAlertController(
+            title: "Something went wrong",
+            message: message,
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
     }
 }
 
