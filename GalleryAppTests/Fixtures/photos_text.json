@@ -1,0 +1,26 @@
+[
+  {
+    "id": "dup-text",
+    "width": 100,
+    "height": 100,
+    "description": "Same caption",
+    "alt_description": "Same caption",
+    "urls": {
+      "small": "https://images.unsplash.com/dup?w=400",
+      "regular": "https://images.unsplash.com/dup?w=1080"
+    },
+    "user": null
+  },
+  {
+    "id": "alt-missing",
+    "width": 100,
+    "height": 100,
+    "description": "Only a long description",
+    "alt_description": null,
+    "urls": {
+      "small": "https://images.unsplash.com/fallback?w=400",
+      "regular": "https://images.unsplash.com/fallback?w=1080"
+    },
+    "user": null
+  }
+]

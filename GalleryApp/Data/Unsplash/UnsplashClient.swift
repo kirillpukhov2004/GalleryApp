@@ -75,16 +75,28 @@ private extension UnsplashPhotoDTO {
             throw APIError.decoding
         }
 
-        let title = [description, altDescription]
-            .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
+        let trimmedAltDescription = altDescription?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedDescription = description?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        let title = [trimmedAltDescription, trimmedDescription]
+            .compactMap { $0 }
             .first { !$0.isEmpty } ?? "Untitled"
 
-        let trimmedDescription = description?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let descriptionText: String? = {
+            guard let trimmedDescription,
+                  !trimmedDescription.isEmpty,
+                  trimmedDescription != title else {
+                return nil
+            }
+            return trimmedDescription
+        }()
 
         return Photo(
             id: id,
             title: title,
-            descriptionText: trimmedDescription?.isEmpty == true ? nil : trimmedDescription,
+            descriptionText: descriptionText,
             thumbnailURL: thumbnailURL,
             regularURL: regularURL,
             photographerName: user?.name ?? user?.username ?? "Unknown photographer",
