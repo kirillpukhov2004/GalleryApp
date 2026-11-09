@@ -51,6 +51,7 @@ final class GalleryViewController: UIViewController {
         collectionView.delegate = self
         collectionView.alwaysBounceVertical = true
         collectionView.backgroundColor = .systemBackground
+        collectionView.accessibilityIdentifier = "gallery.collection"
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(collectionView)
 
@@ -152,17 +153,35 @@ final class GalleryViewController: UIViewController {
     }
 
     private func applySnapshot(_ state: GalleryViewModel.State) {
+        let favouritesChanged = state.favouriteIDs != renderedFavouriteIDs
+
         var snapshot = NSDiffableDataSourceSnapshot<Section, Photo.ID>()
         snapshot.appendSections([.main])
         snapshot.appendItems(state.photos.map(\.id))
+        dataSource?.apply(snapshot, animatingDifferences: hasAppliedSnapshot)
 
-        if state.favouriteIDs != renderedFavouriteIDs {
-            snapshot.reconfigureItems(snapshot.itemIdentifiers)
+        if favouritesChanged {
+            updateVisibleFavouriteBadges(state)
         }
 
-        dataSource?.apply(snapshot, animatingDifferences: hasAppliedSnapshot)
         hasAppliedSnapshot = true
         renderedFavouriteIDs = state.favouriteIDs
+    }
+
+    private func updateVisibleFavouriteBadges(_ state: GalleryViewModel.State) {
+        for indexPath in collectionView.indexPathsForVisibleItems {
+            guard let cell = collectionView.cellForItem(at: indexPath) as? PhotoCell,
+                  let photoID = dataSource?.itemIdentifier(for: indexPath),
+                  let photo = photosByID[photoID] else {
+                continue
+            }
+
+            cell.configure(
+                photo: photo,
+                isFavourite: state.favouriteIDs.contains(photoID),
+                imageLoader: imageLoader
+            )
+        }
     }
 
     private func updateSpinners(_ state: GalleryViewModel.State) {
