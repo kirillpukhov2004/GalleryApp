@@ -55,12 +55,23 @@ final class PhotoCell: UICollectionViewCell {
         imageView.tintColor = .tertiaryLabel
         contentView.addSubview(imageView)
 
-        badgeContainer.backgroundColor = UIColor.black.withAlphaComponent(0.45)
-        badgeContainer.layer.cornerRadius = 13
+        badgeContainer.backgroundColor = UIColor.black.withAlphaComponent(0.55)
+        badgeContainer.layer.cornerRadius = 15
+        badgeContainer.layer.borderWidth = 0.5
+        badgeContainer.layer.borderColor = UIColor.white.withAlphaComponent(0.35).cgColor
+        badgeContainer.layer.shadowColor = UIColor.black.cgColor
+        badgeContainer.layer.shadowOpacity = 0.25
+        badgeContainer.layer.shadowRadius = 3
+        badgeContainer.layer.shadowOffset = CGSize(width: 0, height: 1)
         badgeContainer.isHidden = true
+        badgeContainer.isAccessibilityElement = false
+        badgeContainer.accessibilityIdentifier = "photo.favouriteBadge"
         badgeContainer.translatesAutoresizingMaskIntoConstraints = false
 
-        badgeImageView.image = UIImage(systemName: "heart.fill")
+        badgeImageView.image = UIImage(
+            systemName: "heart.fill",
+            withConfiguration: UIImage.SymbolConfiguration(pointSize: 15, weight: .semibold)
+        )
         badgeImageView.tintColor = .white
         badgeImageView.contentMode = .scaleAspectFit
         badgeImageView.translatesAutoresizingMaskIntoConstraints = false
@@ -75,13 +86,13 @@ final class PhotoCell: UICollectionViewCell {
 
             badgeContainer.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 6),
             badgeContainer.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -6),
-            badgeContainer.widthAnchor.constraint(equalToConstant: 26),
-            badgeContainer.heightAnchor.constraint(equalToConstant: 26),
+            badgeContainer.widthAnchor.constraint(equalToConstant: 30),
+            badgeContainer.heightAnchor.constraint(equalToConstant: 30),
 
             badgeImageView.centerXAnchor.constraint(equalTo: badgeContainer.centerXAnchor),
             badgeImageView.centerYAnchor.constraint(equalTo: badgeContainer.centerYAnchor),
-            badgeImageView.widthAnchor.constraint(equalToConstant: 14),
-            badgeImageView.heightAnchor.constraint(equalToConstant: 14)
+            badgeImageView.widthAnchor.constraint(equalToConstant: 16),
+            badgeImageView.heightAnchor.constraint(equalToConstant: 16)
         ])
     }
 }
