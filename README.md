@@ -152,7 +152,7 @@ swiftlint --strict
 
 ## Tests
 
-67 unit tests run without touching the network or the live API.
+69 unit tests run without touching the network or the live API.
 
 | Suite | Covers |
 | --- | --- |

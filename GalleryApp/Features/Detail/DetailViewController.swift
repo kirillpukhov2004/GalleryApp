@@ -31,6 +31,7 @@ final class DetailViewController: UIViewController {
     private var portraitConstraints: [NSLayoutConstraint] = []
     private var landscapeConstraints: [NSLayoutConstraint] = []
     private var layoutMode: DetailLayoutMode?
+    private var lastPagingSize: CGSize = .zero
     private var hasAppliedSnapshot = false
     private var lastShownError: String?
     private var cancellables = Set<AnyCancellable>()
@@ -59,10 +60,29 @@ final class DetailViewController: UIViewController {
         render(viewModel.state)
     }
 
+    override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        updateLayoutModeIfNeeded()
+    }
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        updateLayoutModeIfNeeded()
-        syncPagingItemSizeIfNeeded()
+        syncPagingIfNeeded()
+    }
+
+    override func viewWillTransition(
+        to size: CGSize,
+        with coordinator: UIViewControllerTransitionCoordinator
+    ) {
+        super.viewWillTransition(to: size, with: coordinator)
+
+        coordinator.animate(alongsideTransition: nil) { [weak self] _ in
+            guard let self else { return }
+            self.view.setNeedsLayout()
+            self.view.layoutIfNeeded()
+            self.syncPagingIfNeeded()
+            self.scrollToCurrentIndex()
+        }
     }
 
     private func configureCollectionView() {
@@ -122,7 +142,7 @@ final class DetailViewController: UIViewController {
 
     private func configureMetadataStack() {
         metadataStackView.axis = .vertical
-        metadataStackView.alignment = .leading
+        metadataStackView.alignment = .fill
         metadataStackView.spacing = 8
         metadataStackView.translatesAutoresizingMaskIntoConstraints = false
         [pageLabel, titleLabel, descriptionLabel, attributionLabel]
@@ -248,41 +268,6 @@ final class DetailViewController: UIViewController {
         hasAppliedSnapshot = true
     }
 
-    private func updateLayoutModeIfNeeded() {
-        let mode = DetailLayoutMode.mode(for: view.bounds.size)
-        guard mode != layoutMode else { return }
-        layoutMode = mode
-
-        NSLayoutConstraint.deactivate(portraitConstraints + landscapeConstraints)
-        NSLayoutConstraint.activate(
-            mode == .portrait ? portraitConstraints : landscapeConstraints
-        )
-        titleLabel.font = .preferredFont(forTextStyle: mode == .portrait ? .title2 : .title3)
-
-        view.setNeedsLayout()
-    }
-
-    private func syncPagingItemSizeIfNeeded() {
-        guard let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout else {
-            return
-        }
-
-        let size = collectionView.bounds.size
-        guard size.width > 0, size.height > 0, layout.itemSize != size else { return }
-
-        layout.itemSize = size
-        layout.invalidateLayout()
-        collectionView.layoutIfNeeded()
-        scrollToCurrentIndex()
-    }
-
-    private func scrollToCurrentIndex() {
-        guard viewModel.photoCount > 0 else { return }
-
-        let indexPath = IndexPath(item: viewModel.state.currentIndex, section: 0)
-        collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: false)
-    }
-
     @objc private func handleHeartTap() {
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
         Task { await viewModel.toggleFavourite() }
@@ -295,6 +280,37 @@ final class DetailViewController: UIViewController {
 }
 
 private extension DetailViewController {
+    func updateLayoutModeIfNeeded() {
+        let mode = DetailLayoutMode.mode(for: view.bounds.size)
+        guard mode != layoutMode else { return }
+        layoutMode = mode
+
+        NSLayoutConstraint.deactivate(portraitConstraints + landscapeConstraints)
+        NSLayoutConstraint.activate(
+            mode == .portrait ? portraitConstraints : landscapeConstraints
+        )
+        titleLabel.font = .preferredFont(forTextStyle: mode == .portrait ? .title2 : .title3)
+    }
+
+    func syncPagingIfNeeded() {
+        let size = collectionView.bounds.size
+        guard size.width > 0, size.height > 0, size != lastPagingSize else { return }
+
+        lastPagingSize = size
+        collectionView.collectionViewLayout.invalidateLayout()
+        collectionView.layoutIfNeeded()
+        collectionView.collectionViewLayout.invalidateLayout()
+        collectionView.layoutIfNeeded()
+        scrollToCurrentIndex()
+    }
+
+    func scrollToCurrentIndex() {
+        guard viewModel.photoCount > 0 else { return }
+
+        let indexPath = IndexPath(item: viewModel.state.currentIndex, section: 0)
+        collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: false)
+    }
+
     func makeLayout() -> UICollectionViewFlowLayout {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
@@ -317,7 +333,16 @@ private extension DetailViewController {
     }
 }
 
-extension DetailViewController: UICollectionViewDelegate {
+extension DetailViewController: UICollectionViewDelegateFlowLayout {
+    func collectionView(
+        _ collectionView: UICollectionView,
+        layout collectionViewLayout: UICollectionViewLayout,
+        sizeForItemAt indexPath: IndexPath
+    ) -> CGSize {
+        let size = collectionView.bounds.size
+        return size.width > 0 && size.height > 0 ? size : CGSize(width: 1, height: 1)
+    }
+
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         updateIndex(from: scrollView)
     }
