@@ -152,7 +152,7 @@ swiftlint --strict
 
 ## Tests
 
-69 unit tests run without touching the network or the live API.
+74 unit tests run without touching the network or the live API.
 
 | Suite | Covers |
 | --- | --- |
@@ -162,6 +162,8 @@ swiftlint --strict
 | `FavouritesRepositoryTests` | toggle/remove, duplicates, persistence across instances, publishers |
 | `ImageLoaderTests` | downsampling, memory cache, in-flight de-duplication, cancellation |
 | `GalleryViewModelTests` | initial load, pagination, de-duplication, refresh, retry, favourite IDs |
+| `PhotoCellTests` | favourite badge visibility and accessibility state |
+| `GalleryViewControllerFavouriteBadgeTests` | badge updates from the favourites publisher |
 | `DetailViewModelTests` | index clamping, swipe updates, favourite state, toggle errors |
 | `DetailLayoutModeTests` | portrait/landscape selection |
 | `DetailViewControllerLayoutTests` | portrait stack, landscape split, rotation alignment, long text |

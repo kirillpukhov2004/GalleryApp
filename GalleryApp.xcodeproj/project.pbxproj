@@ -17,6 +17,7 @@
 		1D753012820AD24AE2A33194 /* FavouriteEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6EF4FE3810C2B0565E7464 /* FavouriteEntity.swift */; };
 		25065DC378891B551D8B5CFA /* GalleryCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 536419BB1CDD8B26F6F22015 /* GalleryCoordinator.swift */; };
 		27B129A93406C27F39BE0D5C /* GalleryViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB07681FE651D601ED0B72CA /* GalleryViewModelTests.swift */; };
+		2840E8E8A73961EB5917E59F /* PhotoCellTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB57D49DF54E28D95D2BC557 /* PhotoCellTests.swift */; };
 		3441BC0B9FF4081C9F273609 /* FavouritesRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 082EA01727FFE164FCE23BBA /* FavouritesRepositoryTests.swift */; };
 		34FE67233984485B5E80EE2D /* DetailViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EC7B699C07C9A3983E54824 /* DetailViewModelTests.swift */; };
 		35C288CE0D975648F6E05F4C /* GalleryApp.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 82EA699D4BB72FEF1BB79E5D /* GalleryApp.xcdatamodeld */; };
@@ -56,6 +57,7 @@
 		E65EAFDF49F0D015F9EE88FC /* GalleryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72000DA0C68FAAF34C6BC409 /* GalleryViewController.swift */; };
 		EF3FE4EBAB8A3CA505FAEE25 /* FakePhotoFetching.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1090C1DF34B2997389E0F43F /* FakePhotoFetching.swift */; };
 		EF42A815EBE1CCE8132E724A /* URLProtocolStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFBAA8A0B4E69EAF34019826 /* URLProtocolStub.swift */; };
+		F355738D2828CD5D6676128C /* GalleryViewControllerFavouriteBadgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EBF141C18861300D48A1E8F /* GalleryViewControllerFavouriteBadgeTests.swift */; };
 		F5A2AEE9165E71083A9FCC7D /* GridLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B0B3D5E5F763164BA8F66B5 /* GridLayout.swift */; };
 		F766F4AB73D374E5F177CA0F /* FavouritesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 373520E0D774206C8ADE2328 /* FavouritesViewController.swift */; };
 /* End PBXBuildFile section */
@@ -83,6 +85,7 @@
 		17B9C95C425A29474A11992D /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		1CE96238A987F7AB9EF793E8 /* AppCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCoordinator.swift; sourceTree = "<group>"; };
 		1E0CA0A720BBEECD31478FB9 /* UnsplashClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsplashClientTests.swift; sourceTree = "<group>"; };
+		1EBF141C18861300D48A1E8F /* GalleryViewControllerFavouriteBadgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryViewControllerFavouriteBadgeTests.swift; sourceTree = "<group>"; };
 		226D60A0371857402FC40FEC /* HTTPClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPClientTests.swift; sourceTree = "<group>"; };
 		327CB250537E30A163A068FC /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		345FE2FAFB48EA6703FAA739 /* PhotoCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoCell.swift; sourceTree = "<group>"; };
@@ -108,6 +111,7 @@
 		9C4F42C777C97B7B53C5FFE4 /* ImageLoaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageLoaderTests.swift; sourceTree = "<group>"; };
 		A011D12B32F08A9CA0807352 /* DetailLayoutModeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailLayoutModeTests.swift; sourceTree = "<group>"; };
 		A7422F5CE3A65ECCA0291FF9 /* APIError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIError.swift; sourceTree = "<group>"; };
+		AB57D49DF54E28D95D2BC557 /* PhotoCellTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoCellTests.swift; sourceTree = "<group>"; };
 		BA330FF9062AF8B1C0A81219 /* PhotoFetching.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoFetching.swift; sourceTree = "<group>"; };
 		BC08C30F14573C7D224B3050 /* Photo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Photo.swift; sourceTree = "<group>"; };
 		BF327BE599C7643B64CFF5FE /* FavouritesCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavouritesCoordinator.swift; sourceTree = "<group>"; };
@@ -221,9 +225,11 @@
 				0EC7B699C07C9A3983E54824 /* DetailViewModelTests.swift */,
 				082EA01727FFE164FCE23BBA /* FavouritesRepositoryTests.swift */,
 				0FC9BE4C43399B0B163F59CD /* FavouritesViewModelTests.swift */,
+				1EBF141C18861300D48A1E8F /* GalleryViewControllerFavouriteBadgeTests.swift */,
 				DB07681FE651D601ED0B72CA /* GalleryViewModelTests.swift */,
 				226D60A0371857402FC40FEC /* HTTPClientTests.swift */,
 				9C4F42C777C97B7B53C5FFE4 /* ImageLoaderTests.swift */,
+				AB57D49DF54E28D95D2BC557 /* PhotoCellTests.swift */,
 				1E0CA0A720BBEECD31478FB9 /* UnsplashClientTests.swift */,
 				985033FDDD110FAC20E1206B /* Fixtures */,
 				B1C986381DA0A68F3FCDFFC7 /* Support */,
@@ -483,9 +489,11 @@
 				EF3FE4EBAB8A3CA505FAEE25 /* FakePhotoFetching.swift in Sources */,
 				3441BC0B9FF4081C9F273609 /* FavouritesRepositoryTests.swift in Sources */,
 				C8D6E69775BCA8FC12B93150 /* FavouritesViewModelTests.swift in Sources */,
+				F355738D2828CD5D6676128C /* GalleryViewControllerFavouriteBadgeTests.swift in Sources */,
 				27B129A93406C27F39BE0D5C /* GalleryViewModelTests.swift in Sources */,
 				4A1976C3D0DCCC0619A3C26C /* HTTPClientTests.swift in Sources */,
 				4BDB149D22D6B2A18C46A695 /* ImageLoaderTests.swift in Sources */,
+				2840E8E8A73961EB5917E59F /* PhotoCellTests.swift in Sources */,
 				EF42A815EBE1CCE8132E724A /* URLProtocolStub.swift in Sources */,
 				C622375A83FD5931914CDC23 /* UnsplashClientTests.swift in Sources */,
 			);
