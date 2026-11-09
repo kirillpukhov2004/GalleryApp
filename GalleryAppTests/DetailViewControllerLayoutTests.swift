@@ -46,6 +46,48 @@ final class DetailViewControllerLayoutTests: XCTestCase {
         XCTAssertEqual(paging.contentOffset.x, paging.bounds.width * 2, accuracy: 1)
     }
 
+    func testRotationBackToPortraitRestoresFullWidthPaging() throws {
+        let sut = try makeSUT(size: CGSize(width: 390, height: 844))
+        layout(sut.viewController)
+
+        sut.window.frame = CGRect(x: 0, y: 0, width: 844, height: 390)
+        sut.viewController.view.frame = sut.window.bounds
+        layout(sut.viewController)
+        layout(sut.viewController)
+
+        sut.window.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
+        sut.viewController.view.frame = sut.window.bounds
+        layout(sut.viewController)
+        layout(sut.viewController)
+
+        let paging = try XCTUnwrap(
+            view("detail.paging", in: sut.viewController.view) as? UICollectionView
+        )
+        let attributes = try XCTUnwrap(
+            paging.collectionViewLayout.layoutAttributesForItem(
+                at: IndexPath(item: 0, section: 0)
+            )
+        )
+
+        XCTAssertEqual(paging.frame.width, sut.viewController.view.bounds.width, accuracy: 1)
+        XCTAssertEqual(attributes.frame.width, paging.bounds.width, accuracy: 1)
+        XCTAssertEqual(paging.contentOffset.x, 0, accuracy: 1)
+
+        let metadata = try XCTUnwrap(view("detail.metadata", in: sut.viewController.view))
+        let description = try XCTUnwrap(view("detail.description", in: sut.viewController.view))
+        XCTAssertEqual(description.frame.width, metadata.bounds.width - 40, accuracy: 1)
+    }
+
+    func testDescriptionUsesFullMetadataWidth() throws {
+        let sut = try makeSUT(size: CGSize(width: 390, height: 844))
+        layout(sut.viewController)
+
+        let metadata = try XCTUnwrap(view("detail.metadata", in: sut.viewController.view))
+        let description = try XCTUnwrap(view("detail.description", in: sut.viewController.view))
+
+        XCTAssertEqual(description.frame.width, metadata.bounds.width - 40, accuracy: 1)
+    }
+
     func testLongDescriptionScrollsInsteadOfClipping() throws {
         let sut = try makeSUT(size: CGSize(width: 390, height: 844))
         layout(sut.viewController)
